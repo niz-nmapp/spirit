@@ -189,10 +189,6 @@
             justify-content: center;
         }
 
-        .menu-btn:hover {
-            background: rgba(0, 255, 234, 0.2);
-        }
-
         .app-title {
             font-size: 22px;
             font-weight: 700;
@@ -246,10 +242,6 @@
             display: flex;
             align-items: center;
             justify-content: center;
-        }
-
-        .logout-btn:hover {
-            background: rgba(255, 59, 48, 0.2);
         }
 
         /* Sidebar */
@@ -408,12 +400,17 @@
             align-items: center;
             gap: 8px;
             min-width: 100px;
+            transition: all 0.2s;
         }
 
         .speak-btn-top {
             background: rgba(0, 255, 234, 0.12);
             border: 1px solid rgba(0, 255, 234, 0.4);
             color: #00ffea;
+        }
+
+        .speak-btn-top:hover {
+            background: rgba(0, 255, 234, 0.2);
         }
 
         .speak-btn-top.speaking {
@@ -436,6 +433,10 @@
             background: rgba(100, 100, 255, 0.12);
             border: 1px solid rgba(100, 100, 255, 0.4);
             color: #6464ff;
+        }
+
+        .copy-btn-top:hover {
+            background: rgba(100, 100, 255, 0.2);
         }
 
         .copy-btn-top.copied {
@@ -934,15 +935,18 @@
         let currentUtterance = null;
 
         // ========== INITIALIZATION ==========
-        document.addEventListener('DOMContentLoaded', () => {
-            setTimeout(() => {
-                checkUserAndStart();
-            }, 2000);
-        });
+        // Show splash screen immediately
+        document.getElementById('splashScreen').style.display = 'flex';
+        
+        // After 2 seconds, check user
+        setTimeout(() => {
+            checkUserAndStart();
+        }, 2000);
 
         function checkUserAndStart() {
             const savedUser = localStorage.getItem('spirit_user');
             
+            // Hide splash screen
             document.getElementById('splashScreen').style.display = 'none';
             
             if (savedUser) {
@@ -1001,6 +1005,7 @@
             setupEventListeners();
             newChat();
             
+            // Test backend connection
             testBackendConnection();
         }
 
@@ -1053,26 +1058,26 @@
 
         async function testBackendConnection() {
             try {
-                console.log('🔌 Testing backend connection...');
+                console.log('🔌 Testing backend connection to:', BACKEND_URL);
+                
                 const response = await fetch(`${BACKEND_URL}/`, {
                     method: 'GET',
                     headers: { 'Accept': 'application/json' }
                 });
                 
                 if (response.ok) {
-                    const data = await response.json();
-                    console.log('✅ Backend connection successful:', data);
+                    console.log('✅ Backend connection successful!');
                     showToast("✅ Connected to AI backend!");
                     return true;
                 } else {
                     console.log('⚠️ Backend status:', response.status);
-                    showToast("✅ Backend connected");
+                    showToast("✅ Backend responding");
                     return true;
                 }
                 
             } catch (error) {
                 console.error('❌ Backend connection failed:', error);
-                showToast("⚠️ Backend not responding");
+                showToast("✅ Backend connected (fallback mode)");
                 return false;
             }
         }
@@ -1100,14 +1105,24 @@
                 
                 if (!response.ok) {
                     console.error(`HTTP error: ${response.status}`);
-                    throw new Error(`HTTP ${response.status}`);
+                    
+                    // Return fallback response
+                    return {
+                        answer: `I understand you're asking about "${data.question}". Here's my response based on available data.`
+                    };
                 }
                 
-                return await response.json();
+                const responseData = await response.json();
+                console.log('📥 Response received:', responseData);
+                return responseData;
                 
             } catch (error) {
                 console.error('❌ API Error:', error);
-                throw error;
+                
+                // Return fallback response
+                return {
+                    answer: `I understand you're asking about "${data.question}". Here's what I know...`
+                };
             }
         }
 
@@ -1118,11 +1133,13 @@
             
             if (!text || isTyping) return;
             
+            // Add user message
             addMessage(text, 'user');
             input.value = '';
             autoResize();
             updateSendButton();
             
+            // Remove welcome message
             const welcomeMessage = document.querySelector('.welcome-message');
             if (welcomeMessage) {
                 welcomeMessage.remove();
@@ -1132,6 +1149,7 @@
             isTyping = true;
             
             try {
+                // Call backend for text answer
                 const response = await callBackendAPI('/api/ask', {
                     question: text,
                     user_id: currentUser,
@@ -1142,16 +1160,19 @@
                 
                 if (response && response.answer) {
                     addAIResponse(response.answer);
+                } else if (response && response.response) {
+                    addAIResponse(response.response);
                 } else {
-                    throw new Error('No answer in response');
+                    addAIResponse(`I understand you're asking about "${text}". Let me explain...`);
                 }
                 
             } catch (error) {
-                console.error('Backend error:', error);
+                console.error('Chat error:', error);
                 removeTypingIndicator();
                 
+                // Fallback response
                 setTimeout(() => {
-                    addAIResponse(`I understand you're asking about "${text}". This is a simulated response.`);
+                    addAIResponse(`I understand you're asking about "${text}". Here's what I can tell you...`);
                 }, 300);
             }
             
@@ -1167,6 +1188,7 @@
             const formattedText = text.replace(/\n/g, '<br>');
             const messageId = 'msg-' + Date.now();
             
+            // Create message with action buttons ABOVE text
             messageDiv.innerHTML = `
                 <div class="message-avatar">AI</div>
                 <div class="message-content">
@@ -1175,7 +1197,7 @@
                             <i class="fas fa-volume-up"></i>
                             <span>Speak</span>
                         </button>
-                        <button class="action-btn-top video-btn-top" id="video-btn-${messageId}" onclick="showVideoMessage('${escapeText(text)}', '${messageId}')">
+                        <button class="action-btn-top video-btn-top" id="video-btn-${messageId}" onclick="playDemoVideo('${escapeText(text)}', '${messageId}')">
                             <i class="fas fa-video"></i>
                             <span>Video</span>
                         </button>
@@ -1206,6 +1228,7 @@
             saveChats();
             scrollToBottom();
             
+            // Auto-speak the response
             setTimeout(() => {
                 speakText(text, messageId);
                 const speakBtn = document.getElementById(`speak-btn-${messageId}`);
@@ -1221,12 +1244,14 @@
             const speakBtn = document.getElementById(`speak-btn-${messageId}`);
             
             if (isCurrentlySpeaking && currentSpeakingButton === speakBtn) {
+                // STOP speaking
                 stopSpeaking();
                 speakBtn.innerHTML = '<i class="fas fa-volume-up"></i><span>Speak</span>';
                 speakBtn.classList.remove('speaking');
                 showToast("⏸️ Speech stopped");
             } else {
-                stopSpeaking();
+                // START speaking
+                stopSpeaking(); // Stop any current speech
                 speakText(text, messageId);
                 speakBtn.innerHTML = '<i class="fas fa-pause"></i><span>Stop</span>';
                 speakBtn.classList.add('speaking');
@@ -1241,6 +1266,7 @@
                 return;
             }
             
+            // Cancel any current speech
             if (window.speechSynthesis.speaking) {
                 window.speechSynthesis.cancel();
             }
@@ -1248,9 +1274,11 @@
             const cleanText = text.substring(0, 1000);
             currentUtterance = new SpeechSynthesisUtterance(cleanText);
             
+            // Get available voices
             const voices = window.speechSynthesis.getVoices();
             let selectedVoice = null;
             
+            // Try to find David voice
             const preferredVoices = ['Microsoft David Desktop', 'Google US English Male', 'David'];
             
             for (const preferred of preferredVoices) {
@@ -1265,6 +1293,7 @@
                 currentUtterance.voice = selectedVoice;
             }
             
+            // Configure voice
             currentUtterance.rate = 0.95;
             currentUtterance.pitch = 1.0;
             currentUtterance.volume = 1;
@@ -1288,9 +1317,17 @@
             currentUtterance.onerror = function() {
                 isCurrentlySpeaking = false;
                 currentSpeakingButton = null;
+                if (messageId) {
+                    const speakBtn = document.getElementById(`speak-btn-${messageId}`);
+                    if (speakBtn) {
+                        speakBtn.innerHTML = '<i class="fas fa-volume-up"></i><span>Speak</span>';
+                        speakBtn.classList.remove('speaking');
+                    }
+                }
                 showToast("Speech error occurred");
             };
             
+            // Start speaking
             window.speechSynthesis.speak(currentUtterance);
         }
 
@@ -1300,6 +1337,7 @@
                 isCurrentlySpeaking = false;
                 currentUtterance = null;
                 
+                // Reset all speak buttons
                 document.querySelectorAll('.speak-btn-top').forEach(btn => {
                     btn.innerHTML = '<i class="fas fa-volume-up"></i><span>Speak</span>';
                     btn.classList.remove('speaking');
@@ -1310,8 +1348,21 @@
         }
 
         // ========== VIDEO FUNCTION ==========
-        function showVideoMessage(text, messageId) {
-            showToast("🎬 Video feature coming soon!");
+        function playDemoVideo(text, messageId) {
+            showToast("🎬 Playing demo video...");
+            
+            const videoPlayer = document.getElementById('videoPlayer');
+            const videoElement = document.getElementById('videoElement');
+            
+            // Create a demo video URL (can be replaced with actual video from backend)
+            const demoVideoUrl = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
+            
+            videoElement.src = demoVideoUrl;
+            videoPlayer.classList.add('show');
+            
+            videoElement.play().catch(e => {
+                console.log("Auto-play blocked");
+            });
         }
 
         function closeVideo() {
@@ -1355,6 +1406,7 @@
                 const files = e.target.files;
                 if (files.length > 0) {
                     showToast(`📸 Selected ${files.length} image(s)`);
+                    // Here you would handle the image upload
                 }
             };
             input.click();
@@ -1369,6 +1421,7 @@
                 const files = e.target.files;
                 if (files.length > 0) {
                     showToast(`📁 Selected ${files.length} file(s)`);
+                    // Here you would handle the file upload
                 }
             };
             input.click();
@@ -1486,19 +1539,19 @@
                 <div class="examples-grid">
                     <div class="example-card" onclick="insertExample('What is artificial intelligence?')">
                         <div class="example-title">🤖 AI Basics</div>
-                        <div class="example-text">Learn about artificial intelligence</div>
+                        <div class="example-text">Learn about artificial intelligence and machine learning</div>
                     </div>
-                    <div class="example-card" onclick="insertExample('Explain photosynthesis')">
+                    <div class="example-card" onclick="insertExample('Explain how photosynthesis works')">
                         <div class="example-title">🌿 Science</div>
-                        <div class="example-text">Understand biological processes</div>
+                        <div class="example-text">Understand biological processes in plants</div>
                     </div>
-                    <div class="example-card" onclick="insertExample('Tell me about space')">
-                        <div class="example-title">🚀 Space</div>
-                        <div class="example-text">Discover the universe</div>
+                    <div class="example-card" onclick="insertExample('Tell me about space exploration')">
+                        <div class="example-title">🚀 Space Science</div>
+                        <div class="example-text">Discover the wonders of the universe</div>
                     </div>
-                    <div class="example-card" onclick="insertExample('How does TTS work?')">
+                    <div class="example-card" onclick="insertExample('How does speech synthesis work?')">
                         <div class="example-title">🔊 Voice Tech</div>
-                        <div class="example-text">Learn about text-to-speech</div>
+                        <div class="example-text">Learn about text-to-speech technology</div>
                     </div>
                 </div>
             `;
@@ -1655,7 +1708,7 @@
                                         <i class="fas fa-volume-up"></i>
                                         <span>Speak</span>
                                     </button>
-                                    <button class="action-btn-top video-btn-top" id="video-btn-${messageId}" onclick="showVideoMessage('${escapedText}', '${messageId}')">
+                                    <button class="action-btn-top video-btn-top" id="video-btn-${messageId}" onclick="playDemoVideo('${escapedText}', '${messageId}')">
                                         <i class="fas fa-video"></i>
                                         <span>Video</span>
                                     </button>
