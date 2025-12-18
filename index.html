@@ -5,21 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Spirit AI - Complete AI Teacher</title>
     
-    <!-- PWA Manifest for Mobile/Desktop Apps -->
+    <!-- PWA Manifest -->
     <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#00ffea">
+    <meta name="description" content="Your intelligent AI companion with David's voice and Wav2Lip video technology">
     
-    <!-- Apple Touch Icon -->
-    <link rel="apple-touch-icon" href="/icons/icon-192.png">
+    <!-- Icons -->
+    <link rel="icon" href="https://img.icons8.com/color/96/000000/artificial-intelligence.png" type="image/png">
+    <link rel="apple-touch-icon" href="https://img.icons8.com/color/96/000000/artificial-intelligence.png">
     
-    <!-- Theme Color -->
-    <meta name="theme-color" content="#0f172a">
-    
-    <!-- Favicon -->
-    <link rel="icon" type="image/png" href="/icons/icon-32.png">
-    
-    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
     <style>
         * {
             margin: 0;
@@ -171,10 +166,6 @@
             cursor: pointer;
         }
 
-        .login-btn:hover {
-            background: linear-gradient(135deg, #00e6d0, #0088cc);
-        }
-
         /* Main App */
         .app-container {
             height: 100vh;
@@ -264,10 +255,6 @@
             display: flex;
             align-items: center;
             justify-content: center;
-        }
-
-        .logout-btn:hover {
-            background: rgba(255, 59, 48, 0.2);
         }
 
         /* Sidebar */
@@ -754,6 +741,51 @@
         .image-icon { color: #ff6b35; }
         .file-icon { color: #6464ff; }
 
+        /* Video Loading Overlay */
+        .video-loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 2001;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .video-loading.show {
+            display: flex;
+        }
+
+        .video-loading-content {
+            text-align: center;
+            padding: 50px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            max-width: 500px;
+        }
+
+        .video-loading-icon {
+            font-size: 60px;
+            margin-bottom: 20px;
+            color: #00ffea;
+            animation: spin 2s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .video-loading-text {
+            font-size: 18px;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 20px;
+        }
+
         /* Toast */
         .toast {
             position: fixed;
@@ -943,6 +975,19 @@
             </div>
             <div class="video-container">
                 <video id="videoElement" controls autoplay></video>
+            </div>
+        </div>
+
+        <!-- Video Loading Overlay -->
+        <div class="video-loading" id="videoLoading">
+            <div class="video-loading-content">
+                <div class="video-loading-icon">
+                    <i class="fas fa-video"></i>
+                </div>
+                <div class="video-loading-text">🎬 Creating video explanation with Wav2Lip...</div>
+                <div style="color: rgba(255, 255, 255, 0.7); font-size: 14px; margin-top: 10px;">
+                    This may take a moment. Video will play automatically when ready.
+                </div>
             </div>
         </div>
     </div>
@@ -1332,11 +1377,18 @@
 
         // ========== VIDEO GENERATION ==========
         async function startVideoGeneration(text, messageId) {
-            // SHOW "Video coming soon" FIRST
+            // Show "Video coming soon" message
             showToast("🎬 Video feature coming soon!");
             return;
-            
-            // Rest of video code here (for future implementation)
+        }
+
+        function showVideoLoading(show) {
+            const loadingOverlay = document.getElementById('videoLoading');
+            if (show) {
+                loadingOverlay.classList.add('show');
+            } else {
+                loadingOverlay.classList.remove('show');
+            }
         }
 
         function showVideo(videoUrl) {
@@ -1423,8 +1475,11 @@
             const copyBtn = document.getElementById(`copy-btn-${messageId}`);
             const originalText = copyBtn.innerHTML;
             
-            // Use modern clipboard API
-            navigator.clipboard.writeText(text).then(() => {
+            // Clean text for copying (remove HTML tags)
+            const cleanText = text.replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]*>/g, '');
+            
+            // Modern clipboard API
+            navigator.clipboard.writeText(cleanText).then(() => {
                 // Success
                 copyBtn.innerHTML = '<i class="fas fa-check"></i><span>Copied!</span>';
                 copyBtn.classList.add('copied');
@@ -1442,7 +1497,18 @@
                 
                 // Create a temporary textarea
                 const textArea = document.createElement('textarea');
-                textArea.value = text;
+                textArea.value = cleanText;
+                textArea.style.position = 'fixed';
+                textArea.style.top = '0';
+                textArea.style.left = '0';
+                textArea.style.width = '2em';
+                textArea.style.height = '2em';
+                textArea.style.padding = '0';
+                textArea.style.border = 'none';
+                textArea.style.outline = 'none';
+                textArea.style.boxShadow = 'none';
+                textArea.style.background = 'transparent';
+                
                 document.body.appendChild(textArea);
                 textArea.select();
                 
