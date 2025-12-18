@@ -4,7 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Spirit AI - Complete AI Teacher</title>
+    
+    <!-- PWA Manifest for Mobile/Desktop Apps -->
+    <link rel="manifest" href="/manifest.json">
+    
+    <!-- Apple Touch Icon -->
+    <link rel="apple-touch-icon" href="/icons/icon-192.png">
+    
+    <!-- Theme Color -->
+    <meta name="theme-color" content="#0f172a">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/icons/icon-32.png">
+    
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <style>
         * {
             margin: 0;
@@ -739,51 +754,6 @@
         .image-icon { color: #ff6b35; }
         .file-icon { color: #6464ff; }
 
-        /* Video Loading Overlay */
-        .video-loading {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.95);
-            z-index: 2001;
-            display: none;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .video-loading.show {
-            display: flex;
-        }
-
-        .video-loading-content {
-            text-align: center;
-            padding: 50px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 20px;
-            max-width: 500px;
-        }
-
-        .video-loading-icon {
-            font-size: 60px;
-            margin-bottom: 20px;
-            color: #00ffea;
-            animation: spin 2s linear infinite;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .video-loading-text {
-            font-size: 18px;
-            color: rgba(255, 255, 255, 0.9);
-            margin-bottom: 20px;
-        }
-
         /* Toast */
         .toast {
             position: fixed;
@@ -975,19 +945,6 @@
                 <video id="videoElement" controls autoplay></video>
             </div>
         </div>
-
-        <!-- Video Loading Overlay -->
-        <div class="video-loading" id="videoLoading">
-            <div class="video-loading-content">
-                <div class="video-loading-icon">
-                    <i class="fas fa-video"></i>
-                </div>
-                <div class="video-loading-text">🎬 Creating video explanation with Wav2Lip...</div>
-                <div style="color: rgba(255, 255, 255, 0.7); font-size: 14px; margin-top: 10px;">
-                    This may take a moment. Video will play automatically when ready.
-                </div>
-            </div>
-        </div>
     </div>
 
     <script>
@@ -1152,7 +1109,6 @@
             } catch (error) {
                 console.error('❌ API Error:', error);
                 
-                // Check if backend is running
                 if (error.message.includes('Failed to fetch')) {
                     showToast("❌ Cannot connect to backend. Make sure Python server is running at http://localhost:5000");
                 } else {
@@ -1376,96 +1332,11 @@
 
         // ========== VIDEO GENERATION ==========
         async function startVideoGeneration(text, messageId) {
-            // Show "Video coming soon" message FIRST
+            // SHOW "Video coming soon" FIRST
             showToast("🎬 Video feature coming soon!");
-            return; // Temporary - video will be implemented later
+            return;
             
-            // Rest of the video generation code below (commented out for now)
-            /*
-            // Check if video already generated for this message
-            if (generatedVideoUrls[messageId]) {
-                showVideo(generatedVideoUrls[messageId]);
-                showToast("🎬 Playing generated video");
-                return;
-            }
-            
-            if (videoGenerating) {
-                showToast("⏳ Please wait...");
-                return;
-            }
-            
-            const videoBtn = document.getElementById(`video-btn-${messageId}`);
-            videoBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Generating...</span>';
-            videoBtn.className = 'action-btn-top video-btn-top loading';
-            videoBtn.disabled = true;
-            
-            videoGenerating = true;
-            showVideoLoading(true);
-            showToast("🎬 Creating video...");
-            
-            try {
-                // Call backend for video generation
-                const response = await callBackendAPI('/api/generate-video', {
-                    text: text.substring(0, 500),
-                    user_id: currentUser,
-                    message_id: messageId
-                });
-                
-                showVideoLoading(false);
-                
-                if (response && (response.video_url || response.video_path || response.video)) {
-                    let videoUrl = response.video_url || response.video_path || response.video;
-                    
-                    if (!videoUrl.startsWith('http')) {
-                        videoUrl = `${BACKEND_URL}${videoUrl}`;
-                    }
-                    
-                    // Store video URL for this message
-                    generatedVideoUrls[messageId] = videoUrl;
-                    
-                    // Update button to show it's ready
-                    videoBtn.innerHTML = '<i class="fas fa-play-circle"></i><span>Play Video</span>';
-                    videoBtn.className = 'action-btn-top video-btn-top ready';
-                    videoBtn.disabled = false;
-                    
-                    // Change click handler to play the existing video
-                    videoBtn.onclick = function() {
-                        showVideo(generatedVideoUrls[messageId]);
-                    };
-                    
-                    // Show video automatically
-                    showVideo(videoUrl);
-                    showToast("✅ Video generated!");
-                    
-                } else {
-                    throw new Error("No video in response");
-                }
-                
-            } catch (error) {
-                console.error("Video generation error:", error);
-                showVideoLoading(false);
-                showToast("❌ Video generation failed");
-                
-                videoBtn.innerHTML = '<i class="fas fa-video"></i><span>Video</span>';
-                videoBtn.className = 'action-btn-top video-btn-top';
-                videoBtn.disabled = false;
-                videoBtn.onclick = function() {
-                    startVideoGeneration(text, messageId);
-                };
-                
-            } finally {
-                videoGenerating = false;
-            }
-            */
-        }
-
-        function showVideoLoading(show) {
-            const loadingOverlay = document.getElementById('videoLoading');
-            if (show) {
-                loadingOverlay.classList.add('show');
-            } else {
-                loadingOverlay.classList.remove('show');
-            }
+            // Rest of video code here (for future implementation)
         }
 
         function showVideo(videoUrl) {
@@ -1552,7 +1423,7 @@
             const copyBtn = document.getElementById(`copy-btn-${messageId}`);
             const originalText = copyBtn.innerHTML;
             
-            // Use the modern clipboard API
+            // Use modern clipboard API
             navigator.clipboard.writeText(text).then(() => {
                 // Success
                 copyBtn.innerHTML = '<i class="fas fa-check"></i><span>Copied!</span>';
