@@ -5,14 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Spirit AI - Complete AI Teacher</title>
     
-    <!-- PWA Manifest -->
+    <!-- Web App Manifest -->
     <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#00ffea">
-    <meta name="description" content="Your intelligent AI companion with David's voice and Wav2Lip video technology">
     
-    <!-- Icons -->
-    <link rel="icon" href="https://img.icons8.com/color/96/000000/artificial-intelligence.png" type="image/png">
-    <link rel="apple-touch-icon" href="https://img.icons8.com/color/96/000000/artificial-intelligence.png">
+    <!-- Icons for PWA -->
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="apple-touch-icon" href="/icon-192.png">
+    
+    <!-- Theme Color -->
+    <meta name="theme-color" content="#0f172a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -166,6 +169,10 @@
             cursor: pointer;
         }
 
+        .login-btn:hover {
+            background: linear-gradient(135deg, #00e6d0, #0088cc);
+        }
+
         /* Main App */
         .app-container {
             height: 100vh;
@@ -255,6 +262,10 @@
             display: flex;
             align-items: center;
             justify-content: center;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255, 59, 48, 0.2);
         }
 
         /* Sidebar */
@@ -863,7 +874,7 @@
     <div id="splashScreen">
         <div class="splash-logo">🤖</div>
         <div class="splash-text">Spirit AI</div>
-        <div class="splash-welcome">Hello Darlings, Welcome to My World</div>
+        <div class="plash-welcome">Hello Darlings, Welcome to My World</div>
         <div class="splash-subtitle">Your intelligent AI companion with David's voice and Wav2Lip video technology</div>
         <div class="loading-bar">
             <div class="loading-progress"></div>
@@ -1377,9 +1388,9 @@
 
         // ========== VIDEO GENERATION ==========
         async function startVideoGeneration(text, messageId) {
-            // Show "Video coming soon" message
+            // Show "Video coming soon" message FIRST
             showToast("🎬 Video feature coming soon!");
-            return;
+            return; // Temporary - video will be implemented later
         }
 
         function showVideoLoading(show) {
@@ -1475,11 +1486,8 @@
             const copyBtn = document.getElementById(`copy-btn-${messageId}`);
             const originalText = copyBtn.innerHTML;
             
-            // Clean text for copying (remove HTML tags)
-            const cleanText = text.replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]*>/g, '');
-            
-            // Modern clipboard API
-            navigator.clipboard.writeText(cleanText).then(() => {
+            // Use the modern clipboard API
+            navigator.clipboard.writeText(text).then(() => {
                 // Success
                 copyBtn.innerHTML = '<i class="fas fa-check"></i><span>Copied!</span>';
                 copyBtn.classList.add('copied');
@@ -1497,18 +1505,7 @@
                 
                 // Create a temporary textarea
                 const textArea = document.createElement('textarea');
-                textArea.value = cleanText;
-                textArea.style.position = 'fixed';
-                textArea.style.top = '0';
-                textArea.style.left = '0';
-                textArea.style.width = '2em';
-                textArea.style.height = '2em';
-                textArea.style.padding = '0';
-                textArea.style.border = 'none';
-                textArea.style.outline = 'none';
-                textArea.style.boxShadow = 'none';
-                textArea.style.background = 'transparent';
-                
+                textArea.value = text;
                 document.body.appendChild(textArea);
                 textArea.select();
                 
