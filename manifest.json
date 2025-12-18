@@ -1,32 +1,16 @@
 {
   "name": "Spirit AI",
-  "short_name": "SpiritAI",
-  "description": "Your intelligent AI companion with David's voice and Wav2Lip video technology",
+  "short_name": "SpiritAI", 
+  "description": "Your intelligent AI companion",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0f172a",
   "theme_color": "#00ffea",
-  "orientation": "portrait-primary",
-  "scope": "/",
-  "lang": "en",
-  "dir": "ltr",
-  "categories": ["education", "productivity", "utilities"],
   "icons": [
     {
-      "src": "/android-chrome-192x192.png",
+      "src": "icon.png",
       "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "/android-chrome-512x512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
+      "type": "image/png"
     }
-  ],
-  "screenshots": [],
-  "shortcuts": [],
-  "prefer_related_applications": false,
-  "related_applications": []
+  ]
 }
